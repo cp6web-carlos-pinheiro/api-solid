@@ -1,15 +1,11 @@
-import Fastify from "fastify";
+import { buildApp } from "./app";
 
-const fastify = Fastify();
+const app = buildApp();
 
-fastify.get("/", (request, reply) => {
-  reply.send({ hello: "World" });
+await app.ready();
+
+await app.listen({
+  port: 4949,
 });
 
-fastify.post("/users", (request, reply) => {
-    reply.send({ hello: "World" });
-});
-
-await fastify.listen({ port: 3000 });
-
-console.log(`Server is running on http://localhost:3000`);
+console.log(`Documentation running at http://localhost:4949/docs`);
