@@ -4,9 +4,9 @@ import type { FastifyInstance } from "fastify";
 import request from "supertest";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { db } from "../resources/db/client";
+import { usersTable } from "../resources/db/schema";
 import { buildApp } from "./app";
-import { db } from "./db/client";
-import { usersTable } from "./db/schema";
 
 const validBody = {
   name: "John Doe",
@@ -132,7 +132,7 @@ describe("POST /users — 409 e-mail already registered", () => {
     });
 
     expect(res.status).toBe(409);
-    expect(res.body).toEqual({ error: "E-mail já cadastrado" });
+    expect(res.body).toEqual({ error: "Email already exists" });
   });
 
   it("keeps only the original user (no duplicate inserted)", async () => {
@@ -155,7 +155,7 @@ describe("POST /users — 500 internal error", () => {
     });
 
     expect(res.status).toBe(500);
-    expect(res.body).toEqual({ error: "Erro ao criar usuário" });
+    expect(res.body).toEqual({ error: "Error creating user" });
   });
 });
 

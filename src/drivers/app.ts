@@ -1,7 +1,5 @@
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
-import bcrypt from "bcrypt";
-import { eq } from "drizzle-orm";
 import fastify from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
@@ -11,8 +9,8 @@ import {
 } from "fastify-type-provider-zod";
 import { z } from "zod/v4";
 
-import { db } from "./db/client";
-import { usersTable } from "./db/schema";
+import { EmailAlreadyExistsError, InvalidMarketingChannelError, PasswordDoNotMatchError, UserCreationError } from "../applications/errors";
+import { CreateUser } from "../applications/usecases/CreateUser";
 
 export const buildApp = () => {
   const app = fastify();
@@ -76,50 +74,23 @@ export const buildApp = () => {
       },
       handler: async (req, res) => {
         try {
-          if (req.body.password !== req.body.passwordConfirmation) {
-            return res.status(400).send({ error: "Passwords do not match" });
-          }
-          const [existingUser] = await db
-            .select()
-            .from(usersTable)
-            .where(eq(usersTable.email, req.body.email));
-          if (existingUser) {
-            return res.status(409).send({ error: "E-mail já cadastrado" });
-          }
-          if (
-            !["email", "sms", "push", "whatsapp"].includes(
-              req.body.preferredMarketingChannel
-            )
-          ) {
-            return res
-              .status(400)
-              .send({ error: "Canal de marketing inválido" });
-          }
-          const [user] = await db
-            .insert(usersTable)
-            .values({
-              name: req.body.name,
-              age: req.body.age,
-              phoneNumber: req.body.phoneNumber,
-              email: req.body.email,
-              password: await bcrypt.hash(req.body.password, 10),
-              preferredMarketingChannel: req.body.preferredMarketingChannel,
-            })
-            .returning();
-          if (!user) {
-            return res.status(500).send({ error: "Erro ao criar usuário" });
-          }
-          return res.status(201).send({
-            id: user.id,
-            name: user.name,
-            age: user.age,
-            phoneNumber: user.phoneNumber,
-            email: user.email,
-            preferredMarketingChannel: user.preferredMarketingChannel,
-          });
+          const createUser = new CreateUser();
+          const output = await createUser.execute(req.body);
+          return res.status(201).send(output);
         } catch (error) {
-          console.error(error);
-          return res.status(500).send({ error: "Erro ao criar usuário" });
+          if (error instanceof PasswordDoNotMatchError) {
+            return res.status(400).send({ error: error.message });
+          }
+          if (error instanceof EmailAlreadyExistsError) {
+            return res.status(409).send({ error: error.message });
+          }
+          if (error instanceof InvalidMarketingChannelError) {
+            return res.status(400).send({ error: error.message });
+          }
+          if (error instanceof UserCreationError) {
+            return res.status(500).send({ error: error.message });
+          }
+          return res.status(500).send({ error: "Error creating user" });
         }
       },
     });
