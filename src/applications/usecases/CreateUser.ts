@@ -1,21 +1,19 @@
 import bcrypt from "bcrypt";
-import { eq } from "drizzle-orm";
 
-import { db } from "../../resources/db/client";
-import { usersTable } from "../../resources/db/schema";
+import { UserDAO } from "../../resources/daos/UserDAO";
 import { EmailAlreadyExistsError, InvalidMarketingChannelError, PasswordDoNotMatchError, UserCreationError } from "../errors";
 
-interface InputDTO {
+export interface InputDTO {
     name: string;
     age: number;
     phoneNumber: string;
     email: string;
     password: string;
-    passwordConfirmation: string;
+    passwordConfirmation?: string;
     preferredMarketingChannel: string;
 }
 
-interface OutputDTO {
+export interface OutputDTO {
     id: string;
     name: string;
     email: string;
@@ -29,10 +27,8 @@ export class CreateUser {
         if (input.password !== input.passwordConfirmation) {
             throw new PasswordDoNotMatchError();
           }
-          const [existingUser] = await db
-            .select()
-            .from(usersTable)
-            .where(eq(usersTable.email, input.email));
+          const userDAO = new UserDAO();
+          const existingUser = await userDAO.findByEmail(input.email);
           if (existingUser) {
             throw new EmailAlreadyExistsError();
           }
@@ -43,17 +39,14 @@ export class CreateUser {
           ) {
             throw new InvalidMarketingChannelError();
           }
-          const [user] = await db
-            .insert(usersTable)
-            .values({
-              name: input.name,
-              age: input.age,
-              phoneNumber: input.phoneNumber,
-              email: input.email,
-              password: await bcrypt.hash(input.password, 10),
-              preferredMarketingChannel: input.preferredMarketingChannel,
-            })
-            .returning();
+          const user = await userDAO.create({
+            name: input.name,
+            age: input.age,
+            phoneNumber: input.phoneNumber,
+            email: input.email,
+            password: await bcrypt.hash(input.password, 10),
+            preferredMarketingChannel: input.preferredMarketingChannel,
+          });
           if (!user) {
             throw new UserCreationError();
           }
