@@ -23,6 +23,9 @@ export interface OutputDTO {
 }
 
 export class CreateUser {
+
+  //Short hand for declaring and initializing the userRepository property in the constructor
+  // constructor(private userRepository: UserRepository) {}
   private userRepository: UserRepository;
 
   constructor(userRepository: UserRepository) {
