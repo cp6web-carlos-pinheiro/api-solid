@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 
-import { UserDAO } from "../../resources/daos/UserDAO";
 import { EmailAlreadyExistsError, InvalidMarketingChannelError, PasswordDoNotMatchError, UserCreationError } from "../errors";
+import { UserRepository } from "../../resources/repositories/UserRepository";
 
 export interface InputDTO {
     name: string;
@@ -23,17 +23,17 @@ export interface OutputDTO {
 }
 
 export class CreateUser {
-  private userDAO: UserDAO;
+  private userRepository: UserRepository;
 
-  constructor(userDAO: UserDAO) {
-    this.userDAO = userDAO;
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository;
   }
 
   async execute(input: InputDTO): Promise<OutputDTO> {
     if (input.password !== input.passwordConfirmation) {
       throw new PasswordDoNotMatchError();
     }
-    const existingUser = await this.userDAO.findByEmail(input.email);
+    const existingUser = await this.userRepository.findByEmail(input.email);
     if (existingUser) {
       throw new EmailAlreadyExistsError();
     }
@@ -44,7 +44,8 @@ export class CreateUser {
     ) {
       throw new InvalidMarketingChannelError();
     }
-    const user = await this.userDAO.create({
+    const user = await this.userRepository.create({
+      id: crypto.randomUUID(),
       name: input.name,
       age: input.age,
       phoneNumber: input.phoneNumber,

@@ -11,7 +11,7 @@ import { z } from "zod/v4";
 
 import { EmailAlreadyExistsError, InvalidMarketingChannelError, PasswordDoNotMatchError, UserCreationError } from "../applications/errors";
 import { CreateUser } from "../applications/usecases/CreateUser";
-import { UserDAODrizzle } from "../resources/daos/UserDAO";
+import { UserRepositoryDrizzle } from "../resources/repositories/UserRepository";
 
 export const buildApp = () => {
   const app = fastify();
@@ -75,7 +75,7 @@ export const buildApp = () => {
       },
       handler: async (req, res) => {
         try {
-          const createUser = new CreateUser(new UserDAODrizzle);
+          const createUser = new CreateUser(new UserRepositoryDrizzle);
           const output = await createUser.execute(req.body);
           return res.status(201).send(output);
         } catch (error) {
