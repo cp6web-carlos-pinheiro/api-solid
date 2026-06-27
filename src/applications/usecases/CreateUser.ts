@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 
 import { EmailAlreadyExistsError, InvalidMarketingChannelError, PasswordDoNotMatchError, UserCreationError } from "../errors";
 import { UserRepository } from "../../resources/repositories/UserRepository";
+import { SendNotificationFactory } from "../factories";
 
 export interface InputDTO {
     name: string;
@@ -59,6 +60,9 @@ export class CreateUser {
     if (!user) {
       throw new UserCreationError();
     }
+    await SendNotificationFactory.create(
+      input.preferredMarketingChannel
+    ).send();
     return {
       id: user.id,
       name: user.name,

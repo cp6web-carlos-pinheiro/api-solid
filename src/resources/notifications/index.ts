@@ -1,15 +1,28 @@
-export const sendWhatsAppNotification = () => {
-    return Promise.resolve();
+//Strategy Pattern
+export interface SendNotificationStrategy {
+    send(): Promise<void>;
 }
 
-export const sendEmailNotification = () => {
-    return Promise.resolve();
+export class SendWhatsAppNotification implements SendNotificationStrategy {
+    async send(): Promise<void> {
+        return Promise.resolve();
+    }
 }
 
-export const sendSMSNotification = () => {
-    return Promise.resolve();
+export class SendEmailNotification implements SendNotificationStrategy {
+    async send(): Promise<void> {
+        return Promise.resolve();
+    }
 }
 
-export const sendPushNotification = () => {
-    return Promise.resolve();
+export class SendSMSNotification implements SendNotificationStrategy {
+    async send(): Promise<void> {
+        return Promise.resolve();
+    }
+}
+
+export class SendPushNotification implements SendNotificationStrategy {
+    async send(): Promise<void> {
+        return Promise.resolve();
+    }
 }
