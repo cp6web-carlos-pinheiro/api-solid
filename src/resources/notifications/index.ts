@@ -3,8 +3,16 @@ export interface SendNotificationStrategy {
     send(): Promise<void>;
 }
 
-export class SendWhatsAppNotification implements SendNotificationStrategy {
+export interface NotificationTracker {
+    trackeDelivery(): Promise<void>;
+}
+
+export class SendWhatsAppNotification implements SendNotificationStrategy, NotificationTracker {
     async send(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    async trackeDelivery(): Promise<void> {
         return Promise.resolve();
     }
 }
