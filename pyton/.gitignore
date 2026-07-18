@@ -44,3 +44,6 @@ htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/
+
+#db.sqlite3
+db.sqlite3
